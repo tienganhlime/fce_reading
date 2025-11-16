@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FCE Reading Week 2 - Trung Tâm Tiếng Anh LIME</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 50%, #81C784 100%);
+        }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4CAF50;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .correct-answer { background-color: #C8E6C9 !important; border-color: #4CAF50 !important; }
+        .wrong-answer { background-color: #FFCDD2 !important; border-color: #F44336 !important; }
+        .reading-text {
+            line-height: 1.8;
+            font-size: 18px;
+        }
+        .reading-text p {
+            margin-bottom: 1rem;
+        }
+        label span { font-size: 18px; }
+    </style>
+</head>
+<body>
+
+<!-- Màn hình nhập mã -->
+<div id="codeScreen" class="min-h-screen p-4 fade-in">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 mt-8">
+            <div class="text-center mb-8">
+                <img src="https://gofirst.pro/images/uploads/62/baseimg/logo_16541442053.png" 
+                     alt="LIME Logo" class="w-32 h-32 mx-auto mb-4 object-contain">
+                <h1 class="text-4xl font-bold text-green-700 mb-2">Trung Tâm Tiếng Anh LIME</h1>
+                <p class="text-green-600 text-lg">Hotline: 0976222792</p>
+                <div class="mt-4 h-1 w-32 bg-green-500 mx-auto rounded"></div>
+            </div>
+            
+            <div class="bg-green-50 rounded-xl p-6 mb-6">
+                <h2 class="text-2xl font-bold text-green-800 mb-4">FCE READING - WEEK 2</h2>
+                <div class="space-y-2 text-green-700">
+                    <p>📖 Part 7: The pros and cons of being a twin</p>
+                    <p>📝 10 câu matching (A-E)</p>
+                    <p>⏰ Theo dõi thời gian làm bài</p>
+                    <p>✅ Chấm điểm tự động</p>
+                    <p>📊 Ghi nhận các thay đổi đáp án</p>
+                </div>
+            </div>
+
+            <div class="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4 mb-6">
+                <div class="flex items-start gap-2">
+                    <svg class="w-6 h-6 text-yellow-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    <div class="text-yellow-800 text-sm">
+                        <p class="font-bold mb-1">⚠️ Lưu ý:</p>
+                        <p>• Đọc kỹ đoạn văn trước khi trả lời</p>
+                        <p>• Có thể thay đổi đáp án bất cứ lúc nào</p>
+                        <p>• Hệ thống ghi nhận các lần đổi đáp án</p>
+                        <p>• Có thể làm lại nhiều lần</p>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-green-800 font-semibold mb-2">Mã học sinh *</label>
+                <input type="text" id="studentCode" 
+                    class="w-full px-4 py-3 border-2 border-green-300 rounded-lg focus:border-green-500 focus:outline-none uppercase"
+                    placeholder="Nhập mã học sinh (VD: HS001)">
+            </div>
+
+            <button onclick="verifyStudent()" 
+                class="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg transition duration-300 text-lg shadow-lg">
+                XÁC NHẬN & BẮT ĐẦU
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Màn hình làm bài -->
+<div id="testScreen" class="hidden min-h-screen p-4 pb-32">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <div class="bg-white rounded-2xl shadow-2xl p-6 mb-6 sticky top-4 z-10">
+            <div class="flex justify-between items-center flex-wrap gap-4">
+                <div class="flex items-center gap-3">
+                    <img src="https://gofirst.pro/images/uploads/62/baseimg/logo_16541442053.png" 
+                         alt="LIME Logo" class="w-12 h-12 object-contain">
+                    <div>
+                        <h1 class="text-2xl font-bold text-green-700">FCE Reading - Week 2</h1>
+                        <p class="text-green-600 text-sm">Part 7</p>
+                    </div>
+                </div>
+                
+                <div class="text-right">
+                    <p class="text-sm text-gray-600">Học sinh: <span id="headerName"></span></p>
+                    <p class="text-sm text-gray-600">Mã: <span id="headerCode"></span></p>
+                    <p class="text-sm text-gray-600">⏱️ Thời gian: <span id="timerDisplay">00:00</span></p>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <div class="flex justify-between text-sm text-gray-600 mb-1">
+                    <span>Tiến độ: <span id="progress">0</span>/10 câu</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-3">
+                    <div id="progressBar" class="bg-green-600 h-3 rounded-full transition-all" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- READING PART 7 -->
+        <div class="bg-white rounded-2xl shadow-2xl p-8 mb-6">
+            <div class="bg-orange-600 text-white px-6 py-3 rounded-t-xl -mx-8 -mt-8 mb-6">
+                <h2 class="text-2xl font-bold">PART 7 - The pros and cons of being a twin</h2>
+                <p class="text-sm opacity-90">Questions 1-10 (10 câu)</p>
+            </div>
+
+            <!-- Instructions -->
+            <div class="bg-orange-50 border-l-4 border-orange-600 p-4 mb-6">
+                <h3 class="font-bold text-orange-800 mb-2">📋 Instructions:</h3>
+                <p class="text-orange-700 text-sm">You are going to read a newspaper article about being a twin. For questions 1-10, choose from the people (A-E). The people may be chosen more than once.</p>
+            </div>
+
+            <!-- Reading Text -->
+            <div class="bg-gray-50 rounded-xl p-6 mb-6 max-h-96 overflow-y-auto border-2 border-gray-200">
+                <h3 class="text-2xl font-bold text-center text-gray-800 mb-6">The pros and cons of being a twin</h3>
+                
+                <div class="reading-text text-gray-700">
+                    <div class="mb-6 p-4 bg-blue-50 rounded-lg">
+                        <h4 class="font-bold text-lg text-blue-800 mb-2">A - Sam Pearson, 13</h4>
+                        <p>People often ask: 'What's it like being a twin?' To which I often respond, 'I don't know, I have never been anything else!' I never mean to be rude; I am just being honest because since birth I have never known anything different. I guess there are some advantages though, for example, there is always someone to partner you in class or hang around with at home. Also, when I meet new people they always find it really interesting to talk about what it must be like being a twin.</p>
+                    </div>
+
+                    <div class="mb-6 p-4 bg-green-50 rounded-lg">
+                        <h4 class="font-bold text-lg text-green-800 mb-2">B - Julia Taylor, 30</h4>
+                        <p>I have always loved being a twin and I see being one as something unique. There aren't many people who have had this benefit and therefore I try to always focus on the positives. This is something our mum and dad taught us when we were very young and I have always remembered this. When we were growing up, one of the best things about being a twin was our birthday parties! We had brilliant birthdays as kids. I am sure they were fairly stressful for our parents, but we thought they were fabulous!</p>
+                    </div>
+
+                    <div class="mb-6 p-4 bg-purple-50 rounded-lg">
+                        <h4 class="font-bold text-lg text-purple-800 mb-2">C - Claire Kite, 16</h4>
+                        <p>People often presume when you are a twin that you must also be identical. This is not the case however, and my twin brother is much taller than me, so sometimes people don't believe we are twins and I find this really annoying! Being a twin has both its good and bad points. We fight a lot, especially over gadgets, and when we were younger over toys or for the attention of our parents, but I guess this is just like any other family. On the positive side, we often have a lot of fun together and I never feel lonely. My brother is also very protective of me, especially at school, which is both a good and bad thing!</p>
+                    </div>
+
+                    <div class="mb-6 p-4 bg-red-50 rounded-lg">
+                        <h4 class="font-bold text-lg text-red-800 mb-2">D - Mary Blackwell, 40</h4>
+                        <p>Growing up I had very mixed emotions about being a twin. I really hated it when people grouped us, referring to us as 'the twins'! We very much had our own identities and some people just failed to recognise that. I used to constantly dye my hair different colours, just so I could look different to my sister. Being seen as a unit rather than as an individual didn't seem to bother my sister that much, but for some reason it really affected me, especially as a teenager. Fortunately, we now have very different lives, so it isn't really an issue anymore.</p>
+                    </div>
+
+                    <div class="mb-6 p-4 bg-yellow-50 rounded-lg">
+                        <h4 class="font-bold text-lg text-yellow-800 mb-2">E - Helen Thompson, 19</h4>
+                        <p>I absolutely loved being a twin when I was growing up. I used to have a great time going out with my sister. We are identical, so we always used to wear the same clothes and have the same haircuts. We got so much attention when we went out and we were sometimes asked to pose for photographs. We felt like celebrities! We were also very close when we were younger, and sure we would argue sometimes, but most of the time we were best friends. This has all changed now though, as we have each gone to a different university. I know it is a good idea that we each have our own independence, but I do find it hard sometimes and a bit lonely.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Questions -->
+            <div class="bg-orange-50 rounded-xl p-4 mb-6">
+                <h4 class="font-bold text-orange-800 mb-3">Which person:</h4>
+            </div>
+
+            <div id="questionsContainer" class="space-y-4"></div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="bg-white rounded-2xl shadow-2xl p-8">
+            <div id="warningBox" class="hidden mb-4 p-4 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
+                <p class="text-yellow-800 text-sm">
+                    ⚠️ Bạn còn <span id="unansweredCount">10</span> câu chưa trả lời!
+                </p>
+            </div>
+            
+            <button onclick="submitTest()" id="submitBtn"
+                class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg transition text-xl shadow-lg">
+                NỘP BÀI
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Màn hình kết quả -->
+<div id="resultScreen" class="hidden min-h-screen p-4">
+    <div class="max-w-5xl mx-auto">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 mt-8 fade-in">
+            <div class="text-center mb-6">
+                <img src="https://gofirst.pro/images/uploads/62/baseimg/logo_16541442053.png" 
+                     alt="LIME Logo" class="w-32 h-32 mx-auto mb-4 object-contain">
+                <h1 class="text-3xl font-bold text-green-700 mb-2">Trung Tâm Tiếng Anh LIME</h1>
+            </div>
+
+            <div class="text-center mb-8">
+                <svg class="w-24 h-24 text-green-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <h2 class="text-3xl font-bold text-green-800 mb-4">Nộp bài thành công!</h2>
+            </div>
+
+            <!-- Kết quả tổng quan -->
+            <div class="bg-green-50 rounded-xl p-6 mb-6 border-2 border-green-200">
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <p class="text-gray-600">Điểm số</p>
+                        <p id="resultScore" class="text-3xl font-bold text-green-700">0%</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600">Câu đúng</p>
+                        <p id="resultCorrect" class="text-3xl font-bold text-green-700">0/10</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600">Thời gian làm bài</p>
+                        <p id="resultTime" class="text-2xl font-bold text-green-700">0 phút</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Danh sách câu sai -->
+            <div class="bg-red-50 rounded-xl p-4 mb-6 border-2 border-red-200">
+                <h3 class="font-bold text-red-800 mb-2">❌ Các câu trả lời sai:</h3>
+                <p id="wrongList" class="text-red-700"></p>
+            </div>
+
+            <!-- Thống kê thay đổi đáp án -->
+            <div class="bg-blue-50 rounded-xl p-4 mb-6 border-2 border-blue-200">
+                <h3 class="font-bold text-blue-800 mb-3">🔄 Thống kê thay đổi đáp án:</h3>
+                <div id="resultChangeLog" class="text-blue-700 text-sm space-y-2"></div>
+            </div>
+
+            <!-- Timeline làm bài -->
+            <div class="bg-purple-50 rounded-xl p-4 mb-6 border-2 border-purple-200">
+                <h3 class="font-bold text-purple-800 mb-3">⏱️ Timeline làm bài:</h3>
+                <div id="resultTimeline" class="text-purple-700 text-sm space-y-1"></div>
+            </div>
+
+            <!-- Hiển thị lại toàn bộ bài làm -->
+            <div class="bg-white rounded-xl p-6 mb-6 border-2 border-gray-200">
+                <h3 class="text-2xl font-bold text-gray-800 mb-4 text-center">📝 BÀI LÀM CỦA BẠN</h3>
+                <div id="reviewContainer" class="space-y-4"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <button onclick="location.reload()" 
+                    class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-lg transition shadow-lg">
+                    Về trang chủ
+                </button>
+                <button onclick="location.reload()" 
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-lg transition shadow-lg">
+                    Làm bài tiếp
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ========== CẤU HÌNH ==========
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyJa2dbJRoN0AH75Znp8WXi77QE9StPFh8-5c1No_P0tPHk7wP0GDfOCO7rLFYsUREl/exec';
+const WEEK_NUMBER = 2;
+
+// Questions Configuration
+const QUESTIONS = [
+    { num: 1, text: 'appreciates the importance of twins needing to find their own way in life?' },
+    { num: 2, text: 'has mixed feelings about being looked after by their sibling?' },
+    { num: 3, text: 'feels angry when people assume that all twins look the same?' },
+    { num: 4, text: 'likes having conversations about being a twin?' },
+    { num: 5, text: 'didn\'t like the way they were viewed as a twin child?' },
+    { num: 6, text: 'struggles when parted from their sibling?' },
+    { num: 7, text: 'realises that it is not only twins who sometimes argue?' },
+    { num: 8, text: 'no longer has a problem with being a twin?' },
+    { num: 9, text: 'shares their parents\' view of being a twin?' },
+    { num: 10, text: 'has always felt fortunate to be a twin?' }
+];
+
+// Correct Answers
+const correctAnswers = {
+    1: 'E', 2: 'C', 3: 'C', 4: 'A', 5: 'D',
+    6: 'E', 7: 'C', 8: 'D', 9: 'B', 10: 'B'
+};
+
+// ========== BIẾN TOÀN CỤC ==========
+let studentInfo = {};
+let answers = {};
+let answerHistory = {}; // Track change history
+let answerTimestamps = {}; // Track timestamp
+let startTime;
+let timerInterval;
+let elapsedSeconds = 0;
+
+// ========== XÁC THỰC HỌC SINH ==========
+async function verifyStudent() {
+    const code = document.getElementById('studentCode').value.trim().toUpperCase();
+    if (!code) {
+        alert('Vui lòng nhập mã học sinh!');
+        return;
+    }
+    
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div> <span>Đang xác nhận mã...</span>';
+    
+    try {
+        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=verify&code=${code}`);
+        const data = await response.json();
+        
+        if (data.exists) {
+            studentInfo = { code: code, name: data.studentName };
+            document.getElementById('codeScreen').classList.add('hidden');
+            document.getElementById('testScreen').classList.remove('hidden');
+            document.getElementById('headerName').textContent = data.studentName;
+            document.getElementById('headerCode').textContent = code;
+            
+            renderQuestions();
+            startTime = Date.now();
+            startTimer();
+        } else {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            alert('❌ Mã học sinh không tồn tại!\n\n📞 Vui lòng liên hệ giáo viên để được hỗ trợ.');
+        }
+    } catch (error) {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        alert('⚠️ Lỗi kết nối!\n\n📞 Vui lòng kiểm tra Internet hoặc liên hệ giáo viên.');
+        console.error('Error:', error);
+    }
+}
+
+// ========== TIMER ==========
+function startTimer() {
+    timerInterval = setInterval(() => {
+        elapsedSeconds++;
+        updateTimerDisplay();
+    }, 1000);
+}
+
+function updateTimerDisplay() {
+    const minutes = Math.floor(elapsedSeconds / 60);
+    const seconds = elapsedSeconds % 60;
+    const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    document.getElementById('timerDisplay').textContent = display;
+}
+
+function stopTimer() {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+    }
+}
+
+function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+// ========== RENDER QUESTIONS ==========
+function renderQuestions() {
+    const container = document.getElementById('questionsContainer');
+    let html = '';
+    
+    QUESTIONS.forEach((q) => {
+        html += `
+        <div class="border-2 border-orange-200 rounded-xl p-4 bg-white" id="question-${q.num}">
+            <div class="flex gap-4 items-start">
+                <div class="flex-shrink-0">
+                    <div class="w-10 h-10 bg-orange-600 text-white rounded-full flex items-center justify-center font-bold">
+                        ${q.num}
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <p class="text-gray-800 mb-3 text-lg">${q.text}</p>
+                    <div class="flex gap-2 flex-wrap">
+        `;
+        
+        ['A', 'B', 'C', 'D', 'E'].forEach(option => {
+            html += `
+                <label class="cursor-pointer answer-option" data-question="${q.num}" data-answer="${option}">
+                    <input type="radio" name="q${q.num}" value="${option}" onchange="handleAnswer(${q.num}, '${option}')" class="hidden">
+                    <div class="px-6 py-3 border-2 border-gray-300 rounded-lg hover:bg-orange-50 hover:border-orange-400 transition-all option-btn">
+                        <span class="font-bold text-lg">${option}</span>
+                    </div>
+                </label>
+            `;
+        });
+        
+        html += `
+                    </div>
+                    <div id="change-indicator-${q.num}" class="mt-2 text-sm text-blue-600 hidden"></div>
+                </div>
+            </div>
+        </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+// ========== XỬ LÝ TRẢ LỜI ==========
+function handleAnswer(questionNum, answer) {
+    const currentTime = Math.floor((Date.now() - startTime) / 1000);
+    const previousAnswer = answers[questionNum];
+    
+    // Initialize history if first time
+    if (!answerHistory[questionNum]) {
+        answerHistory[questionNum] = [];
+    }
+    
+    // Record change
+    answerHistory[questionNum].push({
+        answer: answer,
+        timestamp: currentTime,
+        formattedTime: formatTime(currentTime)
+    });
+    
+    // Update current answer
+    answers[questionNum] = answer;
+    answerTimestamps[questionNum] = currentTime;
+    
+    // Update UI
+    updateProgress();
+    highlightSelectedOption(questionNum, answer);
+    
+    // Show change indicator if changed
+    if (previousAnswer && previousAnswer !== answer) {
+        const changeCount = answerHistory[questionNum].length - 1;
+        const indicator = document.getElementById(`change-indicator-${questionNum}`);
+        indicator.textContent = `🔄 Đã đổi ${changeCount} lần`;
+        indicator.classList.remove('hidden');
+    }
+}
+
+function highlightSelectedOption(questionNum, selectedAnswer) {
+    const labels = document.querySelectorAll(`label[data-question="${questionNum}"]`);
+    labels.forEach(label => {
+        const btn = label.querySelector('.option-btn');
+        if (label.dataset.answer === selectedAnswer) {
+            btn.classList.remove('border-gray-300', 'bg-white');
+            btn.classList.add('bg-orange-100', 'border-orange-500', 'ring-2', 'ring-orange-300');
+        } else {
+            btn.classList.remove('bg-orange-100', 'border-orange-500', 'ring-2', 'ring-orange-300');
+            btn.classList.add('border-gray-300', 'bg-white');
+        }
+    });
+}
+
+function updateProgress() {
+    const answered = Object.keys(answers).length;
+    const percent = Math.round((answered / 10) * 100);
+    document.getElementById('progress').textContent = answered;
+    document.getElementById('progressPercent').textContent = percent + '%';
+    document.getElementById('progressBar').style.width = percent + '%';
+    
+    const unanswered = 10 - answered;
+    if (unanswered > 0) {
+        document.getElementById('warningBox').classList.remove('hidden');
+        document.getElementById('unansweredCount').textContent = unanswered;
+    } else {
+        document.getElementById('warningBox').classList.add('hidden');
+    }
+}
+
+// ========== NỘP BÀI ==========
+async function submitTest() {
+    const unanswered = 10 - Object.keys(answers).length;
+    if (unanswered > 0) {
+        if (!confirm(`Bạn còn ${unanswered} câu chưa trả lời. Nộp bài?`)) return;
+    }
+    
+    stopTimer();
+    
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<div class="spinner"></div> <span>Đang xử lý...</span>';
+    
+    let correctCount = 0;
+    let wrongQuestions = [];
+
+    Object.keys(correctAnswers).forEach(q => {
+        const qNum = parseInt(q);
+        const userAnswer = answers[qNum];
+        const correctAns = correctAnswers[qNum];
+        
+        if (userAnswer && userAnswer.toUpperCase() === correctAns.toUpperCase()) {
+            correctCount++;
+        } else {
+            wrongQuestions.push(qNum);
+        }
+    });
+
+    const totalScore = Math.round((correctCount / 10) * 100);
+    const timeUsedMinutes = Math.floor(elapsedSeconds / 60);
+    const timeUsedSeconds = elapsedSeconds % 60;
+    const timeUsedDisplay = `${timeUsedMinutes}p ${timeUsedSeconds}s`;
+    
+    // Format change log
+    const changeLog = [];
+    Object.keys(answerHistory).forEach(qNum => {
+        const history = answerHistory[qNum];
+        if (history.length > 1) {
+            const changes = history.map(h => `${h.answer}(${h.formattedTime})`).join('→');
+            changeLog.push(`Q${qNum}: ${changes}`);
+        }
+    });
+    
+    // Format timeline
+    const timeline = [];
+    Object.keys(answerTimestamps).sort((a, b) => answerTimestamps[a] - answerTimestamps[b]).forEach(qNum => {
+        timeline.push(`Q${qNum} at ${formatTime(answerTimestamps[qNum])}`);
+    });
+    
+    // Dữ liệu gửi lên Google Sheets
+    const dataToSend = {
+        timestamp: new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }),
+        studentCode: studentInfo.code,
+        weekNumber: WEEK_NUMBER,
+        partNumber: 'Reading',
+        totalQuestions: 10,
+        score: totalScore,
+        correctAnswers: correctCount,
+        wrongQuestions: wrongQuestions.join(', ') || 'Không có',
+        timeUsed: timeUsedDisplay,
+        timeUsedSeconds: elapsedSeconds,
+        changeLog: changeLog.join(' | ') || 'Không có thay đổi',
+        timeline: timeline.join(', '),
+        answers: JSON.stringify(answers),
+        answerHistory: JSON.stringify(answerHistory)
+    };
+    
+    try {
+        await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dataToSend)
+        });
+        
+        console.log('Dữ liệu đã gửi:', dataToSend);
+        showResults(correctCount, totalScore, timeUsedDisplay, wrongQuestions, changeLog, timeline);
+        
+    } catch (error) {
+        console.error('Lỗi gửi dữ liệu:', error);
+        showResults(correctCount, totalScore, timeUsedDisplay, wrongQuestions, changeLog, timeline);
+    }
+}
+
+// ========== HIỂN THỊ KẾT QUẢ ==========
+function showResults(correctCount, totalScore, timeUsed, wrongQuestions, changeLog, timeline) {
+    document.getElementById('testScreen').classList.add('hidden');
+    document.getElementById('resultScreen').classList.remove('hidden');
+    
+    document.getElementById('resultScore').textContent = totalScore + '%';
+    document.getElementById('resultCorrect').textContent = correctCount + '/10';
+    document.getElementById('resultTime').textContent = timeUsed;
+    document.getElementById('wrongList').textContent = wrongQuestions.length > 0 ? 
+        `Câu số: ${wrongQuestions.join(', ')}` : 'Không có câu sai - Hoàn hảo! 🎉';
+    
+    // Hiển thị change log
+    let changeLogHtml = '';
+    if (changeLog.length > 0) {
+        changeLog.forEach(log => {
+            changeLogHtml += `<p class="text-blue-700">🔄 ${log}</p>`;
+        });
+    } else {
+        changeLogHtml = '<p class="text-gray-600 italic">Không có thay đổi đáp án</p>';
+    }
+    document.getElementById('resultChangeLog').innerHTML = changeLogHtml;
+    
+    // Hiển thị timeline
+    let timelineHtml = '';
+    timeline.forEach(item => {
+        timelineHtml += `<p class="text-purple-700">⏱️ ${item}</p>`;
+    });
+    document.getElementById('resultTimeline').innerHTML = timelineHtml;
+    
+    // Hiển thị lại toàn bộ bài làm
+    const reviewContainer = document.getElementById('reviewContainer');
+    let html = '';
+    
+    QUESTIONS.forEach((q) => {
+        const userAnswer = answers[q.num];
+        const correctAns = correctAnswers[q.num];
+        const isCorrect = userAnswer && userAnswer.toUpperCase() === correctAns.toUpperCase();
+        const bgClass = isCorrect ? 'correct-answer' : 'wrong-answer';
+        
+        const history = answerHistory[q.num] || [];
+        let historyText = '';
+        if (history.length > 1) {
+            const changes = history.map(h => `${h.answer} (${h.formattedTime})`).join(' → ');
+            historyText = `<p class="text-sm text-blue-600 mt-1">🔄 Lịch sử: ${changes}</p>`;
+        }
+        
+        html += `
+        <div class="border-2 ${bgClass} rounded-xl p-4">
+            <div class="flex gap-3">
+                <div class="flex-shrink-0">
+                    <div class="w-10 h-10 ${isCorrect ? 'bg-green-600' : 'bg-red-600'} text-white rounded-full flex items-center justify-center font-bold">
+                        ${q.num}
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <p class="text-gray-800 mb-2">${q.text}</p>
+                    <p class="text-gray-700">
+                        <span class="font-semibold">Câu trả lời của bạn:</span> 
+                        <span class="${userAnswer ? (isCorrect ? 'text-green-700 font-bold' : 'text-red-700 font-bold') : 'text-gray-500 italic'}">
+                            ${userAnswer || 'Bỏ trống'}
+                        </span>
+                    </p>
+                    ${historyText}
+                </div>
+            </div>
+        </div>
+        `;
+    });
+    
+    reviewContainer.innerHTML = html;
+}
+</script>
+
+</body>
+</html>
