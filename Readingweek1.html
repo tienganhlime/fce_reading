@@ -520,10 +520,31 @@ async function submitTest() {
         }
     });
     
-    // Format timeline
-    const timeline = [];
-    Object.keys(answerTimestamps).sort((a, b) => answerTimestamps[a] - answerTimestamps[b]).forEach(qNum => {
-        timeline.push(`Q${qNum} at ${formatTime(answerTimestamps[qNum])}`);
+    // Format timeline - Sắp xếp theo thứ tự thời gian THỰC TẾ
+    const timelineArray = [];
+    Object.keys(answerHistory).forEach(qNum => {
+        const history = answerHistory[qNum];
+        history.forEach((entry, idx) => {
+            timelineArray.push({
+                qNum: qNum,
+                answer: entry.answer,
+                timestamp: entry.timestamp,
+                formattedTime: entry.formattedTime,
+                isChange: idx > 0
+            });
+        });
+    });
+    
+    // Sort theo thời gian
+    timelineArray.sort((a, b) => a.timestamp - b.timestamp);
+    
+    // Format thành text
+    const timeline = timelineArray.map((item, index) => {
+        if (item.isChange) {
+            return `${index + 1}. Câu ${item.qNum} - Đổi sang ${item.answer} lúc ${item.formattedTime}`;
+        } else {
+            return `${index + 1}. Câu ${item.qNum} - Trả lời ${item.answer} lúc ${item.formattedTime}`;
+        }
     });
     
     // Dữ liệu gửi lên Google Sheets
@@ -539,7 +560,7 @@ async function submitTest() {
         timeUsed: timeUsedDisplay,
         timeUsedSeconds: elapsedSeconds,
         changeLog: changeLog.join(' | ') || 'Không có thay đổi',
-        timeline: timeline.join(', '),
+        timeline: timeline.join(' | '),
         answers: JSON.stringify(answers),
         answerHistory: JSON.stringify(answerHistory)
     };
@@ -588,7 +609,16 @@ function showResults(correctCount, totalScore, timeUsed, wrongQuestions, changeL
     // Hiển thị timeline
     let timelineHtml = '';
     timeline.forEach(item => {
-        timelineHtml += `<p class="text-purple-700">⏱️ ${item}</p>`;
+        // Tách số thứ tự và nội dung
+        const parts = item.split('. ');
+        const number = parts[0];
+        const content = parts[1];
+        
+        if (content.includes('Đổi sang')) {
+            timelineHtml += `<p class="text-blue-700">🔄 <strong>${number}.</strong> ${content}</p>`;
+        } else {
+            timelineHtml += `<p class="text-purple-700">📝 <strong>${number}.</strong> ${content}</p>`;
+        }
     });
     document.getElementById('resultTimeline').innerHTML = timelineHtml;
     
