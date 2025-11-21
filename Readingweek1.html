@@ -299,6 +299,9 @@ let startTime;
 let timerInterval;
 let elapsedSeconds = 0;
 let sessionKey = '';
+let tabSwitchLog = [];
+let isTabActive = true;
+let lastActiveTime = null;
 
 // ========== XÁC THỰC HỌC SINH ==========
 async function verifyStudent() {
@@ -338,6 +341,7 @@ async function verifyStudent() {
                 elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
                 answers = session.answers || {};
                 answerHistory = session.answerHistory || {};
+tabSwitchLog = session.tabSwitchLog || [];
                 
                 // Restore UI
                 Object.keys(answers).forEach(qNum => {
@@ -350,6 +354,7 @@ async function verifyStudent() {
             }
             
             startTimer();
+setupTabTracking();
         } else {
             btn.disabled = false;
             btn.innerHTML = originalText;
@@ -370,6 +375,7 @@ function saveSession() {
         startTime: startTime,
         answers: answers,
         answerHistory: answerHistory,
+        tabSwitchLog: tabSwitchLog,  // ✅ THÊM log chuyển tab
         lastUpdate: Date.now()
     };
     
@@ -377,6 +383,144 @@ function saveSession() {
         localStorage.setItem(sessionKey, JSON.stringify(session));
     } catch (e) {
         console.warn('Không thể lưu session:', e);
+    }
+}
+
+// ========== PHÁT HIỆN CHUYỂN TAB ==========
+function setupTabTracking() {
+    lastActiveTime = Date.now();
+    
+    // Phát hiện khi RỜI KHỎI tab
+    document.addEventListener('visibilitychange', function() {
+        const currentTime = Math.floor((Date.now() - startTime) / 1000);
+        const formattedTime = formatTime(currentTime);
+        
+        if (document.hidden) {
+            // ❌ Học sinh CHUYỂN ĐI
+            isTabActive = false;
+            const switchTime = Date.now();
+            
+            tabSwitchLog.push({
+                type: 'leave',
+                time: formattedTime,
+                timestamp: currentTime,
+                realTime: new Date().toLocaleTimeString('vi-VN')
+            });
+            
+            console.warn(`⚠️ [${formattedTime}] Học sinh rời khỏi tab`);
+            
+        } else {
+            // ✅ Học sinh QUAY LẠI
+            isTabActive = true;
+            const returnTime = Date.now();
+            const awayDuration = Math.floor((returnTime - lastActiveTime) / 1000);
+            
+            tabSwitchLog.push({
+                type: 'return',
+                time: formattedTime,
+                timestamp: currentTime,
+                awayDuration: awayDuration,
+                realTime: new Date().toLocaleTimeString('vi-VN')
+            });
+            
+            console.log(`✅ [${formattedTime}] Học sinh quay lại (Rời ${awayDuration}s)`);
+            
+            lastActiveTime = returnTime;
+        }
+        
+        // Tự động lưu log
+        saveSession();
+    });
+    
+    // Phát hiện khi BLUR (mất focus)
+    window.addEventListener('blur', function() {
+        if (!document.hidden) {
+            const currentTime = Math.floor((Date.now() - startTime) / 1000);
+            const formattedTime = formatTime(currentTime);
+            
+            tabSwitchLog.push({
+                type: 'blur',
+                time: formattedTime,
+                timestamp: currentTime,
+                realTime: new Date().toLocaleTimeString('vi-VN')
+            });
+            
+            console.warn(`👁️ [${formattedTime}] Tab mất focus (có thể mở app khác)`);
+        }
+    });
+    
+    // Phát hiện khi FOCUS (lấy lại focus)
+    window.addEventListener('focus', function() {
+        if (!document.hidden) {
+            const currentTime = Math.floor((Date.now() - startTime) / 1000);
+            const formattedTime = formatTime(currentTime);
+            
+            tabSwitchLog.push({
+                type: 'focus',
+                time: formattedTime,
+                timestamp: currentTime,
+                realTime: new Date().toLocaleTimeString('vi-VN')
+            });
+            
+            console.log(`👁️ [${formattedTime}] Tab được focus lại`);
+        }
+        
+        lastActiveTime = Date.now();
+    });
+}
+
+// ========== HIỂN THỊ CẢNH BÁO KHI CHUYỂN TAB ==========
+function showTabSwitchWarning() {
+    // Tạo overlay cảnh báo
+    const overlay = document.createElement('div');
+    overlay.id = 'tabWarningOverlay';
+    overlay.innerHTML = `
+        <div style="
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        ">
+            <div style="
+                background: white;
+                padding: 30px;
+                border-radius: 15px;
+                max-width: 500px;
+                text-align: center;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            ">
+                <div style="font-size: 60px; margin-bottom: 20px;">⚠️</div>
+                <h2 style="color: #D32F2F; margin-bottom: 15px; font-size: 24px;">CẢNH BÁO!</h2>
+                <p style="color: #333; margin-bottom: 20px; font-size: 16px;">
+                    Hệ thống phát hiện bạn đã <strong>rời khỏi tab</strong>!<br>
+                    Hành vi này đã được <strong>ghi nhận</strong>.
+                </p>
+                <button onclick="closeTabWarning()" style="
+                    background: #4CAF50;
+                    color: white;
+                    border: none;
+                    padding: 12px 30px;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    font-weight: bold;
+                    cursor: pointer;
+                ">Tôi hiểu</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+}
+
+function closeTabWarning() {
+    const overlay = document.getElementById('tabWarningOverlay');
+    if (overlay) {
+        overlay.remove();
     }
 }
 
@@ -405,6 +549,25 @@ function formatTime(seconds) {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+// ========== FORMAT TAB SWITCH LOG ==========
+function formatTabSwitchLog(logs) {
+    if (logs.length === 0) return 'Không chuyển tab';
+    
+    const formatted = logs.map((log, index) => {
+        if (log.type === 'leave') {
+            return `${index + 1}. Rời tab lúc ${log.time} (${log.realTime})`;
+        } else if (log.type === 'return') {
+            return `${index + 1}. Quay lại lúc ${log.time} - Rời ${log.awayDuration}s (${log.realTime})`;
+        } else if (log.type === 'blur') {
+            return `${index + 1}. Mất focus lúc ${log.time} (${log.realTime})`;
+        } else if (log.type === 'focus') {
+            return `${index + 1}. Lấy lại focus lúc ${log.time} (${log.realTime})`;
+        }
+    });
+    
+    return formatted.join(' | ');
 }
 
 // ========== RENDER QUESTIONS ==========
@@ -578,7 +741,9 @@ const timeline = timelineArray.map((item, index) => {
         changeLog: changeLog.join(' | ') || 'Không có thay đổi',
         timeline: timeline.join(' | '),
         answers: answers,  // Chỉ gửi đáp án của học sinh
-        answerHistory: answerHistory
+        answerHistory: answerHistory,
+tabSwitchCount: tabSwitchLog.filter(log => log.type === 'leave').length,
+        tabSwitchLog: formatTabSwitchLog(tabSwitchLog)
     };
     
     try {
