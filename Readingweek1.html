@@ -272,7 +272,7 @@
 
 <script>
 // ========== CẤU HÌNH ==========
-const GOOGLE_SCRIPT_URL = 'const GOOGLE_SCRIPT_URL = 'https://cors.limeenglish.net/gas?url=https://script.google.com/macros/s/AKfycbyJa2dbJRoN0AH75Znp8WXi77QE9StPFh8-5c1No_P0tPHk7wP0GDfOCO7rLFYsUREl/exec';
+const GOOGLE_SCRIPT_URL = 'const GOOGLE_SCRIPT_URL = 'https://cors.limeenglish.net/gas?url=https://script.google.com/macros/s/AKfycbyJa2dbJRoN0AH75Znp8WXi77QE9StPFh8-5c1No_P0tPHk7wP0GDfOCO7rLFYsUREl/exec';';
 const WEEK_NUMBER = 2;
 
 // Questions Configuration
@@ -747,10 +747,13 @@ tabSwitchCount: tabSwitchLog.filter(log => log.type === 'leave').length,
     };
     
     try {
-       const response = await fetch(GOOGLE_SCRIPT_URL, {
-    method: 'POST',
-    body: JSON.stringify(dataToSend)  // ✅ BỎ HEADER
-});
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dataToSend)
+        });
         
         const result = await response.json();
         
@@ -861,6 +864,4 @@ function showResults(correctCount, totalScore, timeUsed, wrongQuestions, changeL
 </script>
 
 </body>
-
 </html>
-
