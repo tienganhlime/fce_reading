@@ -289,11 +289,6 @@ const QUESTIONS = [
     { num: 10, text: 'has always felt fortunate to be a twin?' }
 ];
 
-// Correct Answers
-const correctAnswers = {
-    1: 'E', 2: 'C', 3: 'C', 4: 'A', 5: 'D',
-    6: 'E', 7: 'C', 8: 'D', 9: 'B', 10: 'B'
-};
 
 // ========== BIẾN TOÀN CỤC ==========
 let studentInfo = {};
@@ -303,6 +298,7 @@ let answerTimestamps = {}; // Track timestamp
 let startTime;
 let timerInterval;
 let elapsedSeconds = 0;
+let sessionKey = '';
 
 // ========== XÁC THỰC HỌC SINH ==========
 async function verifyStudent() {
@@ -323,13 +319,36 @@ async function verifyStudent() {
         
         if (data.exists) {
             studentInfo = { code: code, name: data.studentName };
+            
+            // ✅ TẠO session key duy nhất
+            sessionKey = `FCE_W${WEEK_NUMBER}_${code}_${Date.now()}`;
+            
             document.getElementById('codeScreen').classList.add('hidden');
             document.getElementById('testScreen').classList.remove('hidden');
             document.getElementById('headerName').textContent = data.studentName;
             document.getElementById('headerCode').textContent = code;
             
             renderQuestions();
-            startTime = Date.now();
+            
+            // ✅ KIỂM TRA xem có session cũ không
+            const savedSession = localStorage.getItem(sessionKey);
+            if (savedSession) {
+                const session = JSON.parse(savedSession);
+                startTime = session.startTime;
+                elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+                answers = session.answers || {};
+                answerHistory = session.answerHistory || {};
+                
+                // Restore UI
+                Object.keys(answers).forEach(qNum => {
+                    highlightSelectedOption(parseInt(qNum), answers[qNum]);
+                });
+                updateProgress();
+            } else {
+                startTime = Date.now();
+                saveSession();
+            }
+            
             startTimer();
         } else {
             btn.disabled = false;
@@ -341,6 +360,23 @@ async function verifyStudent() {
         btn.innerHTML = originalText;
         alert('⚠️ Lỗi kết nối!\n\n📞 Vui lòng kiểm tra Internet hoặc liên hệ giáo viên.');
         console.error('Error:', error);
+    }
+}
+// ✅ LƯU session để tránh mất dữ liệu
+function saveSession() {
+    if (!sessionKey) return;
+    
+    const session = {
+        startTime: startTime,
+        answers: answers,
+        answerHistory: answerHistory,
+        lastUpdate: Date.now()
+    };
+    
+    try {
+        localStorage.setItem(sessionKey, JSON.stringify(session));
+    } catch (e) {
+        console.warn('Không thể lưu session:', e);
     }
 }
 
@@ -418,33 +454,31 @@ function handleAnswer(questionNum, answer) {
     const currentTime = Math.floor((Date.now() - startTime) / 1000);
     const previousAnswer = answers[questionNum];
     
-    // Initialize history if first time
     if (!answerHistory[questionNum]) {
         answerHistory[questionNum] = [];
     }
     
-    // Record change
     answerHistory[questionNum].push({
         answer: answer,
         timestamp: currentTime,
         formattedTime: formatTime(currentTime)
     });
     
-    // Update current answer
     answers[questionNum] = answer;
     answerTimestamps[questionNum] = currentTime;
     
-    // Update UI
     updateProgress();
     highlightSelectedOption(questionNum, answer);
     
-    // Show change indicator if changed
     if (previousAnswer && previousAnswer !== answer) {
         const changeCount = answerHistory[questionNum].length - 1;
         const indicator = document.getElementById(`change-indicator-${questionNum}`);
         indicator.textContent = `🔄 Đã đổi ${changeCount} lần`;
         indicator.classList.remove('hidden');
     }
+    
+    // ✅ TỰ ĐỘNG LƯU sau mỗi lần trả lời
+    saveSession();
 }
 
 function highlightSelectedOption(questionNum, selectedAnswer) {
@@ -490,22 +524,6 @@ async function submitTest() {
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<div class="spinner"></div> <span>Đang xử lý...</span>';
     
-    let correctCount = 0;
-    let wrongQuestions = [];
-
-    Object.keys(correctAnswers).forEach(q => {
-        const qNum = parseInt(q);
-        const userAnswer = answers[qNum];
-        const correctAns = correctAnswers[qNum];
-        
-        if (userAnswer && userAnswer.toUpperCase() === correctAns.toUpperCase()) {
-            correctCount++;
-        } else {
-            wrongQuestions.push(qNum);
-        }
-    });
-
-    const totalScore = Math.round((correctCount / 10) * 100);
     const timeUsedMinutes = Math.floor(elapsedSeconds / 60);
     const timeUsedSeconds = elapsedSeconds % 60;
     const timeUsedDisplay = `${timeUsedMinutes}p ${timeUsedSeconds}s`;
@@ -520,72 +538,87 @@ async function submitTest() {
         }
     });
     
-    // Format timeline - Sắp xếp theo thứ tự thời gian THỰC TẾ
-    const timelineArray = [];
-    Object.keys(answerHistory).forEach(qNum => {
-        const history = answerHistory[qNum];
-        history.forEach((entry, idx) => {
-            timelineArray.push({
-                qNum: qNum,
-                answer: entry.answer,
-                timestamp: entry.timestamp,
-                formattedTime: entry.formattedTime,
-                isChange: idx > 0
-            });
+   // Format timeline - Sắp xếp theo thứ tự thời gian THỰC TẾ
+const timelineArray = [];
+Object.keys(answerHistory).forEach(qNum => {
+    const history = answerHistory[qNum];
+    history.forEach((entry, idx) => {
+        timelineArray.push({
+            qNum: qNum,
+            answer: entry.answer,
+            timestamp: entry.timestamp,
+            formattedTime: entry.formattedTime,
+            isChange: idx > 0,
+            isFirst: idx === 0  // ✅ THÊM flag này
         });
     });
+});
+
+timelineArray.sort((a, b) => a.timestamp - b.timestamp);
+
+const timeline = timelineArray.map((item, index) => {
+    // ✅ HIỂN THỊ RÕ RÀNG: Lần đầu hay đổi đáp án
+    if (item.isFirst) {
+        return `${index + 1}. Câu ${item.qNum} - Chọn ${item.answer} lúc ${item.formattedTime}`;
+    } else {
+        return `${index + 1}. Câu ${item.qNum} - Đổi sang ${item.answer} lúc ${item.formattedTime}`;
+    }
+});
     
-    // Sort theo thời gian
-    timelineArray.sort((a, b) => a.timestamp - b.timestamp);
-    
-    // Format thành text
-    const timeline = timelineArray.map((item, index) => {
-        if (item.isChange) {
-            return `${index + 1}. Câu ${item.qNum} - Đổi sang ${item.answer} lúc ${item.formattedTime}`;
-        } else {
-            return `${index + 1}. Câu ${item.qNum} - Trả lời ${item.answer} lúc ${item.formattedTime}`;
-        }
-    });
-    
-    // Dữ liệu gửi lên Google Sheets
+    // 🔥 GỬI LÊN SERVER ĐỂ CHẤM ĐIỂM
     const dataToSend = {
+        action: 'grade',
         timestamp: new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }),
         studentCode: studentInfo.code,
         weekNumber: WEEK_NUMBER,
         partNumber: 'Reading',
         totalQuestions: 10,
-        score: totalScore,
-        correctAnswers: correctCount,
-        wrongQuestions: wrongQuestions.join(', ') || 'Không có',
         timeUsed: timeUsedDisplay,
         timeUsedSeconds: elapsedSeconds,
         changeLog: changeLog.join(' | ') || 'Không có thay đổi',
         timeline: timeline.join(' | '),
-        answers: JSON.stringify(answers),
-        answerHistory: JSON.stringify(answerHistory)
+        answers: answers,  // Chỉ gửi đáp án của học sinh
+        answerHistory: answerHistory
     };
     
     try {
-        await fetch(GOOGLE_SCRIPT_URL, {
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors',
             headers: { 
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(dataToSend)
         });
         
-        console.log('Dữ liệu đã gửi:', dataToSend);
-        showResults(correctCount, totalScore, timeUsedDisplay, wrongQuestions, changeLog, timeline);
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+            // ✅ XÓA session sau khi nộp bài thành công
+            if (sessionKey) {
+                localStorage.removeItem(sessionKey);
+            }
+            
+            showResults(
+                result.correctCount,
+                result.score,
+                timeUsedDisplay,
+                result.wrongQuestions,
+                changeLog,
+                timeline,
+                result.userAnswers
+            );
+        }
         
     } catch (error) {
         console.error('Lỗi gửi dữ liệu:', error);
-        showResults(correctCount, totalScore, timeUsedDisplay, wrongQuestions, changeLog, timeline);
+        alert('⚠️ Không thể kết nối đến server. Vui lòng thử lại!');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'NỘP BÀI';
     }
 }
 
 // ========== HIỂN THỊ KẾT QUẢ ==========
-function showResults(correctCount, totalScore, timeUsed, wrongQuestions, changeLog, timeline) {
+function showResults(correctCount, totalScore, timeUsed, wrongQuestions, changeLog, timeline, userAnswers) {
     document.getElementById('testScreen').classList.add('hidden');
     document.getElementById('resultScreen').classList.remove('hidden');
     
@@ -627,9 +660,8 @@ function showResults(correctCount, totalScore, timeUsed, wrongQuestions, changeL
     let html = '';
     
     QUESTIONS.forEach((q) => {
-        const userAnswer = answers[q.num];
-        const correctAns = correctAnswers[q.num];
-        const isCorrect = userAnswer && userAnswer.toUpperCase() === correctAns.toUpperCase();
+    const userAnswer = userAnswers[q.num];  // ✅ Lấy từ server
+    const isCorrect = wrongQuestions.indexOf(q.num) === -1;  // ✅ Kiểm tra trong danh sách câu sai
         const bgClass = isCorrect ? 'correct-answer' : 'wrong-answer';
         
         const history = answerHistory[q.num] || [];
