@@ -756,7 +756,7 @@ const response = await fetch(`${GOOGLE_SCRIPT_URL}?${params.toString()}`, {
     method: 'GET'
 });
         
-        const result = { status: 'success' };
+         const result = await response.json()
         
         if (result.status === 'success') {
             // ✅ XÓA session sau khi nộp bài thành công
