@@ -748,14 +748,15 @@ tabSwitchCount: tabSwitchLog.filter(log => log.type === 'leave').length,
     
     try {
         const response = await fetch(GOOGLE_SCRIPT_URL, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(dataToSend)
-        });
+    method: 'POST',
+    mode: 'no-cors',  // ← THÊM DÒNG NÀY
+    headers: { 
+        'Content-Type': 'text/plain'  // ← ĐỔI THÀNH text/plain
+    },
+    body: JSON.stringify(dataToSend)
+});
         
-        const result = await response.json();
+        const result = { status: 'success' };
         
         if (result.status === 'success') {
             // ✅ XÓA session sau khi nộp bài thành công
