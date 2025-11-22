@@ -747,13 +747,13 @@ tabSwitchCount: tabSwitchLog.filter(log => log.type === 'leave').length,
     };
     
     try {
-        const response = await fetch(GOOGLE_SCRIPT_URL, {
-    method: 'POST',
-    mode: 'no-cors',  // ← THÊM DÒNG NÀY
-    headers: { 
-        'Content-Type': 'text/plain'  // ← ĐỔI THÀNH text/plain
-    },
-    body: JSON.stringify(dataToSend)
+        const params = new URLSearchParams({
+    action: 'submit',
+    data: JSON.stringify(dataToSend)
+});
+
+const response = await fetch(`${GOOGLE_SCRIPT_URL}?${params.toString()}`, {
+    method: 'GET'
 });
         
         const result = { status: 'success' };
