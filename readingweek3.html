@@ -7,113 +7,169 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
   body {font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);}
-  .gap-input {width: 170px; padding: 10px; margin: 0 8px; border: none; border-bottom: 3px solid #333;
-              font-size: 24px; font-weight: bold; text-align: center; outline: none; background: transparent;}
+  .gap-input {
+    width: 170px; padding: 10px; margin: 0 8px; border: none; border-bottom: 3px solid #333;
+    font-size: 24px; font-weight: bold; text-align: center; outline: none; background: transparent;
+    transition: all 0.3s;
+  }
   .gap-input:focus {border-bottom: 3px solid #4CAF50; background: #f0fff0;}
   .article {font-size: 1.5rem; line-height: 2.5rem; text-align: justify;}
   @media (min-width: 768px) {.article {font-size: 1.8rem; line-height: 3rem;}}
+  .correct {background:#C8E6C9 !important; border-color:#4CAF50 !important;}
+  .wrong   {background:#FFCDD2 !important; border-color:#F44336 !important;}
 </style>
 </head>
 <body>
 
-<div id="codeScreen" class="min-h-screen p-6">
-  <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-2xl p-10 text-center">
+<!-- MÀN HÌNH NHẬP MÃ -->
+<div id="codeScreen" class="min-h-screen flex items-center justify-center p-6">
+  <div class="max-w-2xl w-full bg-white rounded-2xl shadow-2xl p-10 text-center">
     <img src="https://gofirst.pro/images/uploads/62/baseimg/logo_16541442053.png" class="w-32 mx-auto mb-6">
-    <h1 class="text-4xl font-bold text-green-700 mb-4">FCE READING - WEEK 3</h1>
-    <input type="text" id="studentCode" class="w-full px-4 py-4 text-2xl border-2 border-green-400 rounded-lg uppercase text-center" placeholder="Nhập mã học sinh">
-    <button onclick="verifyStudent()" class="mt-8 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-5 rounded-xl text-2xl">BẮT ĐẦU</button>
+    <h1 class="text-4xl font-bold text-green-700 mb-8">FCE READING - WEEK 3</h1>
+    <input type="text" id="studentCode" class="w-full px-6 py-5 text-3xl border-4 border-green-400 rounded-xl uppercase text-center mb-8" placeholder="Nhập mã học sinh">
+    <button onclick="verifyStudent()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-5 rounded-xl text-3xl shadow-lg">
+      BẮT ĐẦU
+    </button>
   </div>
 </div>
 
-<div id="testScreen" class="hidden min-h-screen p-4">
+<!-- MÀN HÌNH LÀM BÀI -->
+<div id="testScreen" class="hidden min-h-screen p-6">
   <div class="max-w-6xl mx-auto">
     <div class="bg-white rounded-2xl shadow-2xl p-6 sticky top-0 z-10 mb-6">
       <div class="flex justify-between items-center">
         <h1 class="text-3xl font-bold text-green-700">FCE Reading Week 3</h1>
         <div class="text-right">
-          <p>Học sinh: <span id="headerName" class="font-bold"></span></p>
-          <p>Thời gian: <span id="timer" class="font-bold text-2xl">00:00</span></p>
+          <p class="text-xl">Học sinh: <span id="headerName" class="font-bold"></span></p>
+          <p class="text-2xl font-bold text-red-600">Thời gian: <span id="timer">00:00</span></p>
         </div>
       </div>
-      <div class="mt-4 bg-gray-200 rounded-full h-5">
-        <div id="progress" class="bg-green-600 h-5 rounded-full transition-all" style="width:0%"></div>
+      <div class="mt-4 bg-gray-300 rounded-full h-6 overflow-hidden">
+        <div id="progress" class="bg-green-600 h-full transition-all" style="width:0%"></div>
       </div>
     </div>
 
     <div class="bg-white rounded-2xl shadow-2xl p-10">
-      <h2 class="text-3xl font-bold text-orange-600 text-center mb-8">How do you manage your money?</h2>
-      <div class="article text-gray-800">
+      <h2 class="text-3xl font-bold text-orange-600 text-center mb-10">How do you manage your money?</h2>
+      <div class="article text-gray-800 leading-relaxed">
         <p>
-          How (0) <strong class="text-orange-600">do</strong> young people manage their money? A recent survey asked teenagers (1) 
-          <input type="text" class="gap-input" id="q1" onblur="saveAnswer(1,this.value)" onkeydown="if(event.key==='Enter')saveAnswer(1,this.value)">
-          their money comes from and about their spending habits. Just over 80% of the teenagers surveyed received regular pocket money (2) 
-          <input type="text" class="gap-input" id="q2" onblur="saveAnswer(2,this.value)" onkeydown="if(event.key==='Enter')saveAnswer(2,this.value)">
-          their parents. About half of these had to (3) 
-          <input type="text" class="gap-input" id="q3" onblur="saveAnswer(3,this.value)" onkeydown="if(event.key==='Enter')saveAnswer(3,this.value)">
-          housework in return for their pocket money. Just under 10% received no money but said that their parents bought (4) 
-          <input type="text" class="gap-input" id="q4" onblur="saveAnswer(4,this.value)" onkeydown="if(event.key==='Enter')saveAnswer(4,this.value)">
-          essential items, such as clothes. A further 12% chose (5) 
-          <input type="text" class="gap-input" id="q5" onblur="saveAnswer(5,this.value)" onkeydown="if(event.key==='Enter')saveAnswer(5,this.value)">
-          get a part-time job. Reasons (6) 
-          <input type="text" class="gap-input" id="q6" onblur="saveAnswer(6,this.value)" onkeydown="if(event.key==='Enter')saveAnswer(6,this.value)">
-          seeking employment included having more money to spend, saving up for a large purchase such (7) 
-          <input type="text" class="gap-input" id="q7" onblur="saveAnswer(7,this.value)" onkeydown="if(event.key==='Enter')saveAnswer(7,this.value)">
-          a car and wanting to be financially independent; that is to say, to make their own money. When asked about (8) 
-          <input type="text" class="gap-input" id="q8" onblur="saveAnswer(8,this.value)" onkeydown="if(event.key==='Enter')saveAnswer(8,this.value)">
+          How (0) <strong class="text-orange-600">do</strong> young people manage their money? A recent survey asked teenagers (1)
+          <input type="text" class="gap-input" id="q1" onblur="saveAnswer(1,this.value)" onkeydown="if(event.key==='Enter') this.blur()">
+          their money comes from and about their spending habits. Just over 80% of the teenagers surveyed received regular pocket money (2)
+          <input type="text" class="gap-input" id="q2" onblur="saveAnswer(2,this.value)" onkeydown="if(event.key==='Enter') this.blur()">
+          their parents. About half of these had to (3)
+          <input type="text" class="gap-input" id="q3" onblur="saveAnswer(3,this.value)" onkeydown="if(event.key==='Enter') this.blur()">
+          housework in return for their pocket money. Just under 10% received no money but said that their parents bought (4)
+          <input type="text" class="gap-input" id="q4" onblur="saveAnswer(4,this.value)" onkeydown="if(event.key==='Enter') this.blur()">
+          essential items, such as clothes. A further 12% chose (5)
+          <input type="text" class="gap-input" id="q5" onblur="saveAnswer(5,this.value)" onkeydown="if(event.key==='Enter') this.blur()">
+          get a part-time job. Reasons (6)
+          <input type="text" class="gap-input" id="q6" onblur="saveAnswer(6,this.value)" onkeydown="if(event.key==='Enter') this.blur()">
+          seeking employment included having more money to spend, saving up for a large purchase such (7)
+          <input type="text" class="gap-input" id="q7" onblur="saveAnswer(7,this.value)" onkeydown="if(event.key==='Enter') this.blur()">
+          a car and wanting to be financially independent; that is to say, to make their own money. When asked about (8)
+          <input type="text" class="gap-input" id="q8" onblur="saveAnswer(8,this.value)" onkeydown="if(event.key==='Enter') this.blur()">
           spending habits, about half of the teenagers surveyed said that they spent all their money each month.
         </p>
       </div>
+
       <div class="text-center mt-12">
-        <button onclick="submitTest()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-6 px-20 rounded-xl text-3xl">NỘP BÀI</button>
+        <button onclick="submitTest()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-6 px-24 rounded-xl text-4xl shadow-2xl">
+          NỘP BÀI
+        </button>
       </div>
     </div>
   </div>
 </div>
 
+<!-- MÀN HÌNH KẾT QUẢ -->
+<div id="resultScreen" class="hidden min-h-screen p-6 flex items-center justify-center">
+  <div class="max-w-4xl w-full bg-white rounded-3xl shadow-2xl p-12 text-center">
+    <h1 class="text-5xl font-bold text-green-700 mb-8">HOÀN THÀNH!</h1>
+    <div class="text-9xl font-bold text-green-600 mb-4" id="finalScore">0%</div>
+    <p class="text-3xl mb-6">Đúng <span id="correctCount">0</span>/8 câu</p>
+    <p class="text-2xl text-gray-700 mb-10">Thời gian: <span id="finalTime">00:00</span></p>
+
+    <div class="bg-yellow-50 border-2 border-yellow-400 rounded-2xl p-6 mb-10 text-left">
+      <h3 class="text-2xl font-bold text-yellow-800 mb-4">Câu sai:</h3>
+      <p id="wrongList" class="text-xl">Không có</p>
+    </div>
+
+    <div class="bg-blue-50 border-2 border-blue-400 rounded-2xl p-6 text-left">
+      <h3 class="text-2xl font-bold text-blue-800 mb-4">Timeline làm bài:</h3>
+      <div id="timelineDisplay" class="text-lg space-y-1"></div>
+    </div>
+
+    <button onclick="location.reload()" class="mt-12 bg-green-600 hover:bg-green-700 text-white font-bold py-5 px-16 rounded-xl text-3xl shadow-xl">
+      LÀM LẠI BÀI
+    </button>
+  </div>
+</div>
+
 <script>
+// === CẤU HÌNH ===
 const URL = 'https://script.google.com/macros/s/AKfycbyJa2dbJRoN0AH75Znp8WXi77QE9StPFh8-5c1No_P0tPHk7wP0GDfOCO7rLFYsUREl/exec'; // ← THAY URL CỦA BẠN VÀO ĐÂY
 const WEEK = 3;
-let student = null, start = null, timer = null;
-let answers = {}, timeline = [], last = {}, tabSwitches = 0;
 
+// === BIẾN TOÀN CỤC ===
+let student = null, startTime = null, timer = null;
+let answers = {}, timeline = [], tabSwitches = 0;
+
+// === PHÁT HIỆN CHUYỂN TAB ===
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilitychange === 'hidden' && document.getElementById('testScreen').classList.contains('hidden') === false) {
+  if (document.visibilitychange === 'hidden' && !document.getElementById('testScreen').classList.contains('hidden')) {
     tabSwitches++;
-    const t = new Date().toLocaleTimeString('vi-VN');
-    timeline.push(`⚠️ Chuyển tab lúc ${t}`);
+    const t = new Date().toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+    timeline.push(`Chuyển tab lúc ${t}`);
   }
 });
 
+// === XÁC NHẬN HỌC SINH ===
 function verifyStudent() {
   const code = document.getElementById('studentCode').value.trim().toUpperCase();
-  if (!code) return alert('Nhập mã học sinh!');
-  fetch(`${URL}?action=verify&code=${code}`).then(r=>r.json()).then(d=>{
-    if (!d.exists) return alert('Mã không tồn tại!');
-    student = {code, name: d.studentName||code};
-    document.getElementById('headerName').textContent = student.name;
-    document.getElementById('codeScreen').classList.add('hidden');
-    document.getElementById('testScreen').classList.remove('hidden');
-    start = Date.now();
-    timer = setInterval(() => {
-      const s = Math.floor((Date.now()-start)/1000);
-      document.getElementById('timer').textContent = String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
-      document.getElementById('progress').style.width = (Object.keys(answers).length/8*100)+'%';
-    }, 500);
-  });
+  if (!code) return alert('Vui lòng nhập mã học sinh!');
+
+  fetch(`${URL}?action=verify&code=${code}`)
+    .then(r => r.json())
+    .then(d => {
+      if (!d.exists) return alert('Mã học sinh không tồn tại!');
+      student = {code, name: d.studentName || code};
+      document.getElementById('headerName').textContent = student.name;
+      document.getElementById('codeScreen').classList.add('hidden');
+      document.getElementById('testScreen').classList.remove('hidden');
+      startTime = Date.now();
+      timer = setInterval(updateTimer, 500);
+    })
+    .catch(() => alert('Lỗi kết nối! Kiểm tra URL Apps Script và Deploy lại với "Anyone"'));
 }
 
+// === CẬP NHẬT TIMER + PROGRESS ===
+function updateTimer() {
+  const seconds = Math.floor((Date.now() - startTime) / 1000);
+  const m = String(Math.floor(seconds/60)).padStart(2,'0');
+  const s = String(seconds%60).padStart(2,'0');
+  document.getElementById('timer').textContent = `${m}:${s}`;
+  document.getElementById('progress').style.width = `${(Object.keys(answers).length/8)*100}%`;
+}
+
+// === LƯU ĐÁP ÁN + GHI TIMELINE ===
 function saveAnswer(q, val) {
   const v = val.trim().toLowerCase();
   if (v === answers[q]) return;
+
   const time = new Date().toLocaleTimeString('vi-VN', {minute:'2-digit', second:'2-digit'});
-  if (!answers[q] && v) timeline.push(`Câu ${q}: "${v}" (${time})`);
-  else if (answers[q] && v) timeline.push(`→ Đổi câu ${q} thành "${v}" (${time})`);
+  if (!answers[q] && v) {
+    timeline.push(`Câu ${q}: "${v}" (${time})`);
+  } else if (answers[q] && v) {
+    timeline.push(`→ Đổi câu ${q} thành "${v}" (${time})`);
+  }
   answers[q] = v;
-  last[q] = v;
 }
 
+// === NỘP BÀI ===
 function submitTest() {
-  if (Object.keys(answers).length < 8 && !confirm('Còn ô trống. Nộp luôn?')) return;
+  if (Object.keys(answers).length < 8 && !confirm('Bạn còn ô trống. Nộp luôn chứ?')) return;
+
   clearInterval(timer);
   const duration = document.getElementById('timer').textContent;
   const realTime = new Date().toLocaleString('vi-VN');
@@ -129,12 +185,41 @@ function submitTest() {
     tabSwitchLog: tabSwitches > 0 ? `Chuyển tab ${tabSwitches} lần` : 'Không chuyển tab'
   };
 
-  fetch(`${URL}?data=${JSON.stringify(data)}`).then(r=>r.json()).then(res=>{
-    if (res.status === 'success') {
-      alert(`Hoàn thành! Điểm: ${res.score}% (${res.correctCount}/8)`);
-      location.reload();
-    } else alert('Lỗi: '+res.message);
-  });
+  fetch(`${URL}?data=${JSON.stringify(data)}`)
+    .then(r => r.json())
+    .then(res => {
+      if (res.status === 'success') {
+        // HIỂN THỊ KẾT QUẢ
+        document.getElementById('testScreen').classList.add('hidden');
+        document.getElementById('resultScreen').classList.remove('hidden');
+
+        document.getElementById('finalScore').textContent = `${res.score}%`;
+        document.getElementById('correctCount').textContent = res.correctCount;
+        document.getElementById('finalTime').textContent = duration;
+
+        if (res.wrongQuestions && res.wrongQuestions.length) {
+          document.getElementById('wrongList').textContent = res.wrongQuestions.join(', ');
+        }
+
+        const tl = document.getElementById('timelineDisplay');
+        timeline.forEach(line => {
+          const p = document.createElement('p');
+          p.textContent = line;
+          tl.appendChild(p);
+        });
+        if (tabSwitches > 0) {
+          const warn = document.createElement('p');
+          warn.className = 'text-red-600 font-bold text-xl';
+          warn.textContent = `Phát hiện chuyển tab ${tabSwitches} lần!`;
+          tl.appendChild(warn);
+        }
+
+        alert(`Nộp bài thành công!\nĐiểm: ${res.score}% (${res.correctCount}/8)`);
+      } else {
+        alert('Lỗi: ' + res.message);
+      }
+    })
+    .catch(() => alert('Lỗi kết nối khi nộp bài!'));
 }
 </script>
 </body>
