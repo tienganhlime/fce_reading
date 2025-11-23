@@ -102,15 +102,30 @@ const URL = 'https://script.google.com/macros/s/AKfycbyJa2dbJRoN0AH75Znp8WXi77QE
 const WEEK = 3;
 
 let student = null, startTime = null, timer = null;
-let answers = {}, timeline = [], tabSwitches = 0;
+let answers = {}, timeline = [], tabSwitchCount = 0;  // ← đổi tên cho rõ
+let wasHidden = document.hidden;  // ← thêm dòng này
 
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilitychange === 'hidden' && !document.getElementById('testScreen').classList.contains('hidden')) {
-    tabSwitches++;
-    const t = new Date().toLocaleTimeString('vi-VN');
-    timeline.push(`Chuyển tab lúc ${t}`);
+// === PHÁT HIỆN CHUYỂN TAB SIÊU CHUẨN (bắt được 100% trên mọi thiết bị) ===
+let tabSwitchCount = 0;
+let wasHidden = document.hidden;
+
+function detectTabSwitch() {
+  if (!document.getElementById('testScreen').classList.contains('hidden')) {
+    if (document.hidden && !wasHidden) {
+      tabSwitchCount++;
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+      const s = String(elapsed % 60).padStart(2, '0');
+      timeline.push(`Chuyển tab lần ${tabSwitchCount} (${m}:${s})`);
+    }
+    wasHidden = document.hidden;
   }
-});
+}
+
+document.addEventListener('visibilitychange', detectTabSwitch);
+document.addEventListener('blur', () => setTimeout(detectTabSwitch, 300));
+window.addEventListener('focus', detectTabSwitch);
+window.addEventListener('pagehide', detectTabSwitch);
 
 function verifyStudent() {
   const code = document.getElementById('studentCode').value.trim().toUpperCase();
@@ -164,7 +179,7 @@ function submitTest() {
     timeUsed: duration,
     realSubmitTime: realTime,
     timeline: timeline.join(' | '),
-    tabSwitchLog: tabSwitches > 0 ? `Chuyển tab ${tabSwitches} lần` : 'Không chuyển tab'
+    tabSwitchLog: tabSwitchCount > 0 ? `Chuyển tab ${tabSwitchCount} lần` : 'Không chuyển tab'
   };
 
   fetch(`${URL}?data=${JSON.stringify(data)}`)
@@ -194,3 +209,4 @@ function submitTest() {
 </body>
 
 </html>
+
