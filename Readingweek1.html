@@ -617,10 +617,12 @@ function handleAnswer(questionNum, answer) {
     const currentTime = Math.floor((Date.now() - startTime) / 1000);
     const previousAnswer = answers[questionNum];
     
+    // ✅ Tạo mảng nếu chưa có
     if (!answerHistory[questionNum]) {
         answerHistory[questionNum] = [];
     }
     
+    // ✅ LUÔN LƯU timestamp (cả lần đầu lẫn lần đổi)
     answerHistory[questionNum].push({
         answer: answer,
         timestamp: currentTime,
@@ -720,11 +722,11 @@ Object.keys(answerHistory).forEach(qNum => {
 timelineArray.sort((a, b) => a.timestamp - b.timestamp);
 
 const timeline = timelineArray.map((item, index) => {
-    // ✅ HIỂN THỊ RÕ RÀNG: Lần đầu hay đổi đáp án
+    // ✅ Hiển thị timestamp cho TẤT CẢ các lần (cả lần đầu)
     if (item.isFirst) {
-        return `${index + 1}. Câu ${item.qNum} - Chọn ${item.answer} lúc ${item.formattedTime}`;
+        return `${index + 1}. [${item.formattedTime}] Câu ${item.qNum} - Chọn ${item.answer}`;
     } else {
-        return `${index + 1}. Câu ${item.qNum} - Đổi sang ${item.answer} lúc ${item.formattedTime}`;
+        return `${index + 1}. [${item.formattedTime}] Câu ${item.qNum} - Đổi sang ${item.answer}`;
     }
 });
     
@@ -865,4 +867,5 @@ function showResults(correctCount, totalScore, timeUsed, wrongQuestions, changeL
 </script>
 
 </body>
+
 </html>
