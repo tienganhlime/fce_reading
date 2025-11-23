@@ -135,9 +135,18 @@ function verifyStudent() {
 function saveAnswer(q, val) {
   const v = val.trim().toLowerCase();
   if (v === answers[q]) return;
-  const time = new Date().toLocaleTimeString('vi-VN', {minute:'2-digit', second:'2-digit'});
-  if (!answers[q] && v) timeline.push(`Câu ${q}: "${v}" (${time})`);
-  else if (answers[q] && v) timeline.push(`→ Đổi câu ${q} thành "${v}" (${time})`);
+
+  // Tính thời gian đã trôi qua từ lúc bắt đầu (tính bằng giây → phút:giây)
+  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+  const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+  const s = String(elapsed % 60).padStart(2, '0');
+  const time = `${m}:${s}`;
+
+  if (!answers[q] && v) {
+    timeline.push(`Câu ${q}: "${v}" (${time})`);
+  } else if (answers[q] && v) {
+    timeline.push(`→ Đổi câu ${q} thành "${v}" (${time})`);
+  }
   answers[q] = v;
 }
 
@@ -183,4 +192,5 @@ function submitTest() {
 }
 </script>
 </body>
+
 </html>
