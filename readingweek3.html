@@ -109,21 +109,31 @@ let wasHidden = document.hidden;  // ← thêm dòng này
 let tabSwitchCount = 0;
 let wasHidden = document.hidden;
 
+// === CHUYỂN TAB: chỉ ghi "Chuyển tab lần 1 (00:15-00:26)" ===
+let tabSwitchCount = 0;
+let tabLeftTime = null;   // thời điểm rời tab (dạng "00:15")
+
 function detectTabSwitch() {
-  if (!document.getElementById('testScreen').classList.contains('hidden')) {
-    if (document.hidden && !wasHidden) {
-      tabSwitchCount++;
-      const elapsed = Math.floor((Date.now() - startTime) / 1000);
-      const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
-      const s = String(elapsed % 60).padStart(2, '0');
-      timeline.push(`Chuyển tab lần ${tabSwitchCount} (${m}:${s})`);
-    }
-    wasHidden = document.hidden;
+  if (document.getElementById('testScreen').classList.contains('hidden')) return;
+
+  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+  const timeStr = `${String(Math.floor(elapsed/60)).padStart(2,'0')}:${String(elapsed%60).padStart(2,'0')}`;
+
+  if (document.hidden && tabLeftTime === null) {
+    // Vừa rời tab
+    tabLeftTime = timeStr;
+  } 
+  else if (!document.hidden && tabLeftTime !== null) {
+    // Vừa quay lại tab
+    tabSwitchCount++;
+    timeline.push(`Chuyển tab lần ${tabSwitchCount} (${tabLeftTime}-${timeStr})`);
+    tabLeftTime = null;
   }
 }
 
+// Bắt đủ sự kiện (đừng thiếu cái nào)
 document.addEventListener('visibilitychange', detectTabSwitch);
-document.addEventListener('blur', () => setTimeout(detectTabSwitch, 300));
+window.addEventListener('blur', detectTabSwitch);
 window.addEventListener('focus', detectTabSwitch);
 window.addEventListener('pagehide', detectTabSwitch);
 
@@ -195,12 +205,12 @@ function submitTest() {
 
         const tl = document.getElementById('timelineDisplay');
         timeline.forEach(l => { const p = document.createElement('p'); p.textContent = l; tl.appendChild(p); });
-        if (tabSwitches > 0) {
-          const warn = document.createElement('p');
-          warn.className = 'text-red-600 font-bold text-xl';
-          warn.textContent = `Phát hiện chuyển tab ${tabSwitches} lần!`;
-          tl.appendChild(warn);
-        }
+        if (tabSwitchCount > 0) {
+  const warn = document.createElement('p');
+  warn.className = 'text-red-600 font-bold text-xl';
+  warn.textContent = `Phát hiện chuyển tab ${tabSwitchCount} lần!`;
+  tl.appendChild(warn);
+}
         alert(`Nộp thành công! Điểm: ${res.score}%`);
       } else alert('Lỗi: ' + res.message);
     });
@@ -209,4 +219,5 @@ function submitTest() {
 </body>
 
 </html>
+
 
