@@ -98,44 +98,19 @@
 </div>
 
 <script>
-const URL = 'https://script.google.com/macros/s/AKfycbyJa2dbJRoN0AH75Znp8WXi77QE9StPFh8-5c1No_P0tPHk7wP0GDfOCO7rLFYsUREl/exec'; // ← THAY URL CỦA BẠN
+const URL = 'https://script.google.com/macros/s/AKfycbyJa2dbJRoN0AH75Znp8WXi77QE9StPFh8-5c1No_P0tPHk7wP0GDfOCO7rLFYsUREl/exec';
 const WEEK = 3;
 
 let student = null, startTime = null, timer = null;
-let answers = {}, timeline = [], tabSwitchCount = 0;  // ← đổi tên cho rõ
-let wasHidden = document.hidden;  // ← thêm dòng này
+let answers = {}, timeline = [], tabSwitches = 0;
 
-// === PHÁT HIỆN CHUYỂN TAB SIÊU CHUẨN (bắt được 100% trên mọi thiết bị) ===
-let tabSwitchCount = 0;
-let wasHidden = document.hidden;
-
-// === CHUYỂN TAB: chỉ ghi "Chuyển tab lần 1 (00:15-00:26)" ===
-let tabSwitchCount = 0;
-let tabLeftTime = null;   // thời điểm rời tab (dạng "00:15")
-
-function detectTabSwitch() {
-  if (document.getElementById('testScreen').classList.contains('hidden')) return;
-
-  const elapsed = Math.floor((Date.now() - startTime) / 1000);
-  const timeStr = `${String(Math.floor(elapsed/60)).padStart(2,'0')}:${String(elapsed%60).padStart(2,'0')}`;
-
-  if (document.hidden && tabLeftTime === null) {
-    // Vừa rời tab
-    tabLeftTime = timeStr;
-  } 
-  else if (!document.hidden && tabLeftTime !== null) {
-    // Vừa quay lại tab
-    tabSwitchCount++;
-    timeline.push(`Chuyển tab lần ${tabSwitchCount} (${tabLeftTime}-${timeStr})`);
-    tabLeftTime = null;
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden' && !document.getElementById('testScreen').classList.contains('hidden')) {
+    tabSwitches++;
+    const t = new Date().toLocaleTimeString('vi-VN');
+    timeline.push(`Chuyển tab lúc ${t}`);
   }
-}
-
-// Bắt đủ sự kiện (đừng thiếu cái nào)
-document.addEventListener('visibilitychange', detectTabSwitch);
-window.addEventListener('blur', detectTabSwitch);
-window.addEventListener('focus', detectTabSwitch);
-window.addEventListener('pagehide', detectTabSwitch);
+});
 
 function verifyStudent() {
   const code = document.getElementById('studentCode').value.trim().toUpperCase();
@@ -154,24 +129,17 @@ function verifyStudent() {
       document.getElementById('timer').textContent = `${m}:${sec}`;
       document.getElementById('progress').style.width = `${(Object.keys(answers).length/8)*100}%`;
     }, 500);
+  }).catch(err => {
+    alert('Lỗi kết nối: ' + err.message);
   });
 }
 
 function saveAnswer(q, val) {
   const v = val.trim().toLowerCase();
   if (v === answers[q]) return;
-
-  // Tính thời gian đã trôi qua từ lúc bắt đầu (tính bằng giây → phút:giây)
-  const elapsed = Math.floor((Date.now() - startTime) / 1000);
-  const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
-  const s = String(elapsed % 60).padStart(2, '0');
-  const time = `${m}:${s}`;
-
-  if (!answers[q] && v) {
-    timeline.push(`Câu ${q}: "${v}" (${time})`);
-  } else if (answers[q] && v) {
-    timeline.push(`→ Đổi câu ${q} thành "${v}" (${time})`);
-  }
+  const time = new Date().toLocaleTimeString('vi-VN', {minute:'2-digit', second:'2-digit'});
+  if (!answers[q] && v) timeline.push(`Câu ${q}: "${v}" (${time})`);
+  else if (answers[q] && v) timeline.push(`→ Đổi câu ${q} thành "${v}" (${time})`);
   answers[q] = v;
 }
 
@@ -189,7 +157,7 @@ function submitTest() {
     timeUsed: duration,
     realSubmitTime: realTime,
     timeline: timeline.join(' | '),
-    tabSwitchLog: tabSwitchCount > 0 ? `Chuyển tab ${tabSwitchCount} lần` : 'Không chuyển tab'
+    tabSwitchLog: tabSwitches > 0 ? `Chuyển tab ${tabSwitches} lần` : 'Không chuyển tab'
   };
 
   fetch(`${URL}?data=${JSON.stringify(data)}`)
@@ -205,19 +173,19 @@ function submitTest() {
 
         const tl = document.getElementById('timelineDisplay');
         timeline.forEach(l => { const p = document.createElement('p'); p.textContent = l; tl.appendChild(p); });
-        if (tabSwitchCount > 0) {
-  const warn = document.createElement('p');
-  warn.className = 'text-red-600 font-bold text-xl';
-  warn.textContent = `Phát hiện chuyển tab ${tabSwitchCount} lần!`;
-  tl.appendChild(warn);
-}
+        if (tabSwitches > 0) {
+          const warn = document.createElement('p');
+          warn.className = 'text-red-600 font-bold text-xl';
+          warn.textContent = `Phát hiện chuyển tab ${tabSwitches} lần!`;
+          tl.appendChild(warn);
+        }
         alert(`Nộp thành công! Điểm: ${res.score}%`);
       } else alert('Lỗi: ' + res.message);
+    })
+    .catch(err => {
+      alert('Lỗi khi nộp bài: ' + err.message);
     });
 }
 </script>
 </body>
-
 </html>
-
-
